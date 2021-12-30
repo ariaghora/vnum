@@ -1,4 +1,5 @@
 module ndarray
+import strings
 
 /*---------------------------------------------------------------------------
  * Const and aliases
@@ -79,7 +80,6 @@ fn (mut arr NDArray) init_indices() {
 /*---------------------------------------------------------------------------
  * Utility functions
  *--------------------------------------------------------------------------*/
-
 fn check_arr_ndim_and_index_len_equals(arr NDArray, index []int) {
 	if arr.shape.len != index.len {
 		panic('Array dimension ($arr.shape.len) does not match the number of index ($index.len)')
@@ -99,6 +99,7 @@ pub fn create_ndarray(data []f64, shape ...int) NDArray {
 	return result
 }
 
+// Returns the data in a linear manner, regardless contiguousness
 pub fn get_view_linear_data(arr NDArray) []f64 {
 	mut size := 1
 	for s in arr.shape {
@@ -112,6 +113,7 @@ pub fn get_view_linear_data(arr NDArray) []f64 {
 	return result
 }
 
+// ....
 fn index_to_offset(index []int, strides []int) int {
 	mut result := 0
 	for i in 0 .. index.len {
@@ -133,6 +135,21 @@ pub fn offset_to_index(arr NDArray, offset int) []int {
 		cnt -= 1
 	}
 	return index
+}
+
+fn print_ndarray_util(ndarray NDArray, ndim int) {
+	for i in 0 .. ndarray.shape[0] {
+		if ndim > 1 {
+			print_ndarray_util(ndarray.slice([i]), ndim - 1)
+			print(strings.repeat_string("\n", ndim - 1))
+		} else {
+			println(get_view_linear_data(ndarray))
+		}
+	}
+}
+
+pub fn print_ndarray(ndarray NDArray) {
+	print_ndarray_util(ndarray, ndarray.shape.len - 1)
 }
 
 // Given a multidimensional index, calculate a proper array of strides.
