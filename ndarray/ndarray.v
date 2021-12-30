@@ -10,9 +10,8 @@ const all = []int{len: 0}
  * The main NDArray struct
  *--------------------------------------------------------------------------*/
 pub struct NDArray {
-mut:
-	indices [][]int
 pub mut:
+	indices [][]int
 	data    []f64
 	shape   []int
 	strides []int
@@ -58,7 +57,11 @@ pub fn (arr NDArray) slice(indices ...[]int) NDArray {
 		// only alter when indices[i].len > 0. Otherwise,
 		// we use original arr's indices[i] and shape[i]
 		if indices[i].len > 0 {
-			result.indices[i] = indices[i]
+			mut new_index := []int{}
+			for j in indices[i] {
+				new_index << result.indices[i][j]
+			}
+			result.indices[i] = new_index
 			result.shape[i] = indices[i].len
 		}
 	}
