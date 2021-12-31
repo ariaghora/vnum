@@ -1,2 +1,3 @@
 - This is a reimplementation of numpy ndarray in v-lang by reverse engineering.
-- Correctness first, optimization later
+    - I don't know numpy's it's internal mechanism, but I can see it's behavior, so I reimplement it based on its behavior.
+- Correctness first, optimization later.
