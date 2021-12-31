@@ -27,6 +27,15 @@ pub fn (arr NDArray) get_by_offset(offset int) f64 {
 	return arr.data[index_to_offset(index, arr.strides)]
 }
 
+// Generate initial linear index from 0..arr.shape[i] for i in 0..arr.shape.len
+fn (mut arr NDArray) init_indices() {
+	mut indices := [][]int{len: arr.shape.len}
+	for i in 0 .. arr.shape.len {
+		indices[i] = []int{len: arr.shape[i], init: it}
+	}
+	arr.indices = indices
+}
+
 pub fn (mut arr NDArray) set_val(val f64, index ...int) {
 	check_arr_ndim_and_index_len_equals(arr, index)
 	arr.data[index_to_offset(index, arr.strides)] = val
@@ -68,13 +77,23 @@ pub fn (arr NDArray) slice(indices ...[]int) NDArray {
 	return result
 }
 
-// Generate initial linear index from 0..arr.shape[i] for i in 0..arr.shape.len
-fn (mut arr NDArray) init_indices() {
-	mut indices := [][]int{len: arr.shape.len}
-	for i in 0 .. arr.shape.len {
-		indices[i] = []int{len: arr.shape[i], init: it}
+// Squeeze length-1 dimensions
+// TODO: use after we get proper implementation of indexing. Squuezing
+// at this moment will cause unexpected behavior.
+pub fn (mut arr NDArray) squeeze_in_place() {
+	mut new_indices := [][]int{}
+	mut new_shape := []int{}
+	mut new_strides := []int{}
+	for i, shp in arr.shape {
+		if shp > 1 {
+			new_indices << arr.indices[i]
+			new_shape << shp
+			new_strides << arr.strides[i]
+		}
 	}
-	arr.indices = indices
+	arr.indices = new_indices
+	arr.shape = new_shape
+	arr.strides = new_strides
 }
 
 /*---------------------------------------------------------------------------
