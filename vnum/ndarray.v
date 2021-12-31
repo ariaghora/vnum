@@ -208,7 +208,6 @@ pub fn broadcast_ndarrays(arr1 NDArray, arr2 NDArray) (NDArray, NDArray) {
 		data: arr1.data
 		shape: new_shape_1.reverse()
 		strides: new_strides_1.reverse()
-		indices: arr1.indices
 	}
 	new_arr_1.init_indices()
 
@@ -216,7 +215,6 @@ pub fn broadcast_ndarrays(arr1 NDArray, arr2 NDArray) (NDArray, NDArray) {
 		data: arr2.data
 		shape: new_shape_2.reverse()
 		strides: new_strides_2.reverse()
-		indices: arr2.indices
 	}
 	new_arr_2.init_indices()
 	return new_arr_1, new_arr_2
