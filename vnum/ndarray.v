@@ -56,7 +56,7 @@ pub fn (arr NDArray) slice(indices ...[]int) NDArray {
 		panic('the NDArray is $arr.shape.len-dimensional, but $indices.len were indexed')
 	}
 
-	// Initially, use to arr's metadata and point data to arr's data
+	// Initially, use arr's metadata and point data to arr's data
 	mut result := NDArray{
 		data: arr.data
 	}
