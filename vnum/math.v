@@ -1,6 +1,6 @@
 module vnum
 
-fn ufunc(func fn (args ...f64) f64, arrs ...NDArray) ?NDArray {
+fn ufunc(func fn (args ...f64) f64, arrs ...NDArray) NDArray {
 	mut result_data := []f64{}
 	if arrs.len > 1 {
 		// Check if all ndarrays in the argument list have the same
@@ -36,10 +36,10 @@ fn add__(args ...f64) f64 {
 	return args[0] + args[1]
 }
 
-pub fn add(arr1 NDArray, arr2 NDArray) ?NDArray {
+pub fn add(arr1 NDArray, arr2 NDArray) NDArray {
 	return ufunc(add__, arr1, arr2)
 }
 
-pub fn (a NDArray) + (b NDArray) ?NDArray {
+pub fn (a NDArray) + (b NDArray) NDArray {
 	return add(a, b)
 }

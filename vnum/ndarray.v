@@ -1,6 +1,6 @@
 module vnum
 
-import strings
+import math
 
 /*---------------------------------------------------------------------------
  * Const and aliases
@@ -175,4 +175,49 @@ fn shape_to_strides(shape []int) []int {
 		strides[k] = prod
 	}
 	return strides
+}
+
+pub fn broadcast_ndarrays(arr1 NDArray, arr2 NDArray) (NDArray, NDArray) {
+	new_ndims := int(math.max(arr1.shape.len, arr2.shape.len))
+
+	mut new_shape_1 := arr1.shape.reverse()
+	mut new_shape_2 := arr2.shape.reverse()
+	mut new_strides_1 := arr1.strides.reverse()
+	mut new_strides_2 := arr2.strides.reverse()
+
+	// Append zeros until having length of `new_ndims`
+	new_shape_1.insert(new_shape_1.len, []int{len: new_ndims - new_shape_1.len, init: 0})
+	new_shape_2.insert(new_shape_2.len, []int{len: new_ndims - new_shape_2.len, init: 0})
+	new_strides_1.insert(new_strides_1.len, []int{len: new_ndims - new_strides_1.len, init: 0})
+	new_strides_2.insert(new_strides_2.len, []int{len: new_ndims - new_strides_2.len, init: 0})
+
+	// Broadcast rule checking...
+	for i in 0 .. new_ndims {
+		if new_shape_1[i] != new_shape_2[i] {
+			if new_shape_1[i] < new_shape_2[i] && new_shape_1[i] <= 1 {
+				new_strides_1[i] = 0
+				new_shape_1[i] = new_shape_2[i]
+			} else if new_shape_2[i] < new_shape_1[i] && new_shape_2[i] <= 1 {
+				new_strides_2[i] = 0
+				new_shape_2[i] = new_shape_1[i]
+			}
+		}
+	}
+
+	mut new_arr_1 := NDArray{
+		data: arr1.data
+		shape: new_shape_1.reverse()
+		strides: new_strides_1.reverse()
+		indices: arr1.indices
+	}
+	new_arr_1.init_indices()
+
+	mut new_arr_2 := NDArray{
+		data: arr2.data
+		shape: new_shape_2.reverse()
+		strides: new_strides_2.reverse()
+		indices: arr2.indices
+	}
+	new_arr_2.init_indices()
+	return new_arr_1, new_arr_2
 }
