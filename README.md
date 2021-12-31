@@ -1,1 +1,2 @@
-## Reimplementation of numpy ndarray in v-lang by reverse engineering
+- This is a reimplementation of numpy ndarray in v-lang by reverse engineering.
+- Correctness first, optimization later
