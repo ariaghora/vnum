@@ -50,7 +50,11 @@ fn (mut arr NDArray) init_indices() {
 	arr.indices = indices
 }
 
+// Create a new ndarray as a contiguous version of `arr`
 pub fn (mut arr NDArray) contiguous() NDArray {
+	if arr.contiguous {
+		return arr
+	}
 	return create_ndarray(get_view_linear_data(arr), ...arr.shape)
 }
 
@@ -150,20 +154,22 @@ pub fn get_view_linear_data(arr NDArray) []f64 {
 	mut starts := []int{len: chunk_count, init: it * chunk_size}
 	starts << arr.get_size()
 	mut idx_bounds := [][]int{}
-	for i in 0..starts.len - 1 {
+	for i in 0 .. starts.len - 1 {
 		idx_bounds << [starts[i], starts[i + 1]]
 	}
 
 	// Concurrently execute the data fetching tasks
-	mut handlers := []thread[]f64{}
+	mut handlers := []thread []f64{}
 	for bound in idx_bounds {
 		handlers << go arr_fetch_worker(arr, bound[0], bound[1])
 	}
-	
+
 	// Obtain the actual data from the thread handler in each chunk, and append
 	// them into result array.
 	mut result := []f64{}
-	chunk_results := handlers.map(fn (x thread []f64) []f64 {return x.wait()})
+	chunk_results := handlers.map(fn (x thread []f64) []f64 {
+		return x.wait()
+	})
 	for i, chunk in chunk_results {
 		result.insert(starts[i], chunk)
 	}

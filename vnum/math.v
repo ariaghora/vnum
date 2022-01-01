@@ -12,7 +12,7 @@ fn ufunc(func fn (args ...f64) f64, arrs ...NDArray) NDArray {
 		// If shapes are exactly same, apply regular ufunc. Otherwise,
 		// try broadcasting two arrays each other.
 		if all_same {
-		mut result_data := []f64{len: arrs[0].get_size()}
+			mut result_data := []f64{len: arrs[0].get_size()}
 			data_1 := get_view_linear_data(arrs[0])
 			data_2 := get_view_linear_data(arrs[1])
 			for i in 0 .. arrs[0].get_size() {

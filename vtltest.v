@@ -1,4 +1,4 @@
-import time {new_stopwatch}
+import time { new_stopwatch }
 import vnum
 import vtl
 
