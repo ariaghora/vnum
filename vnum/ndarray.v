@@ -12,13 +12,17 @@ const all = []int{len: 0}
  *--------------------------------------------------------------------------*/
 pub struct NDArray {
 pub mut:
-	indices [][]int
-	data    []f64
-	shape   []int
-	strides []int
+	indices    [][]int
+	data       []f64
+	shape      []int
+	strides    []int
+	contiguous bool = true
 }
 
 pub fn (arr NDArray) get_by_offset(offset int) f64 {
+	if arr.contiguous {
+		return arr.data[offset]
+	}
 	index := offset_to_index(arr, offset)
 	return arr.data[index_to_offset(index, arr.strides)]
 }
@@ -43,6 +47,10 @@ fn (mut arr NDArray) init_indices() {
 		indices[i] = []int{len: arr.shape[i], init: it}
 	}
 	arr.indices = indices
+}
+
+pub fn (mut arr NDArray) contiguous() NDArray {
+	return create_ndarray(get_view_linear_data(arr), ...arr.shape)
 }
 
 pub fn (mut arr NDArray) set_val(val f64, index ...int) {
@@ -83,6 +91,7 @@ pub fn (arr NDArray) slice(indices ...[]int) NDArray {
 			result.shape[i] = indices[i].len
 		}
 	}
+	result.contiguous = false
 	return result.squeeze()
 }
 
@@ -210,6 +219,11 @@ pub fn broadcast_ndarrays(arr1 NDArray, arr2 NDArray) (NDArray, NDArray) {
 		strides: new_strides_1.reverse()
 	}
 	new_arr_1.init_indices()
+	if (new_arr_1.shape == arr1.shape) && (new_arr_1.strides == arr1.strides) {
+		new_arr_1.contiguous = arr1.contiguous
+	} else {
+		new_arr_1.contiguous = false
+	}
 
 	mut new_arr_2 := NDArray{
 		data: arr2.data
@@ -217,5 +231,10 @@ pub fn broadcast_ndarrays(arr1 NDArray, arr2 NDArray) (NDArray, NDArray) {
 		strides: new_strides_2.reverse()
 	}
 	new_arr_2.init_indices()
+	if (new_arr_2.shape == arr2.shape) && (new_arr_2.strides == arr2.strides) {
+		new_arr_2.contiguous = arr2.contiguous
+	} else {
+		new_arr_2.contiguous = false
+	}
 	return new_arr_1, new_arr_2
 }
