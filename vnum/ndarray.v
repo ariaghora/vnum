@@ -19,6 +19,7 @@ pub mut:
 	contiguous bool = true
 }
 
+[inline]
 pub fn (arr NDArray) get_by_offset(offset int) f64 {
 	if arr.contiguous {
 		return arr.data[offset]
@@ -68,15 +69,9 @@ pub fn (arr NDArray) slice(indices ...[]int) NDArray {
 	mut result := NDArray{
 		data: arr.data
 	}
-	for index in arr.indices {
-		result.indices << index
-	}
-	for shp in arr.shape {
-		result.shape << shp
-	}
-	for stride in arr.strides {
-		result.strides << stride
-	}
+	result.indices = arr.indices.clone()
+	result.shape = arr.shape.clone()
+	result.strides = arr.strides.clone()
 
 	// Alter result's indices and shape
 	for i in 0 .. indices.len {
@@ -133,21 +128,51 @@ pub fn create_ndarray(data []f64, shape ...int) NDArray {
 	return result
 }
 
-// Returns the data in a linear manner, regardless contiguousness
-pub fn get_view_linear_data(arr NDArray) []f64 {
-	mut size := 1
-	for s in arr.shape {
-		size *= s
-	}
-
-	mut result := []f64{len: size}
-	for i in 0 .. size {
-		result[i] = arr.get_by_offset(i)
+fn arr_fetch_worker(arr NDArray, lower int, upper int) []f64 {
+	mut result := []f64{len: upper - lower}
+	for i in lower .. upper {
+		result[i - lower] = arr.get_by_offset(i)
 	}
 	return result
 }
 
-// ....
+// Returns the data in a linear manner, regardless contiguousness
+pub fn get_view_linear_data(arr NDArray) []f64 {
+	size := arr.get_size()
+
+	// We are going to split the task of fetching array data into several tasks.
+	// First, determine the number chunks, in which we want to store the fetched data.
+	// Also, determine the size of each chunk
+	mut chunk_count := 8
+	chunk_size := size / chunk_count
+
+	// Determine the lower and upper bounds for each chunk
+	mut starts := []int{len: chunk_count, init: it * chunk_size}
+	starts << arr.get_size()
+	mut idx_bounds := [][]int{}
+	for i in 0..starts.len - 1 {
+		idx_bounds << [starts[i], starts[i + 1]]
+	}
+
+	// Concurrently execute the data fetching tasks
+	mut handlers := []thread[]f64{}
+	for bound in idx_bounds {
+		handlers << go arr_fetch_worker(arr, bound[0], bound[1])
+	}
+	
+	// Obtain the actual data from the thread handler in each chunk, and append
+	// them into result array.
+	mut result := []f64{}
+	chunk_results := handlers.map(fn (x thread []f64) []f64 {return x.wait()})
+	for i, chunk in chunk_results {
+		result.insert(starts[i], chunk)
+	}
+
+	return result
+}
+
+// Convert multidimensional index into offset pointing to the actual data
+[inline]
 fn index_to_offset(index []int, strides []int) int {
 	mut result := 0
 	for i in 0 .. index.len {
@@ -158,6 +183,7 @@ fn index_to_offset(index []int, strides []int) int {
 
 // Given an offset, recover it to multidimensional index according to `arr`'s'
 // strides, shapes, and indices. This is the inverse of index to offset.
+[inline]
 pub fn offset_to_index(arr NDArray, offset int) []int {
 	mut index := []int{len: arr.shape.len}
 

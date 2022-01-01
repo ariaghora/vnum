@@ -32,3 +32,8 @@ fn test_get_view_linear_data_simple() {
 	a := vnum.create_ndarray([1.0, 2.0, 3.0, 4.0], 2, 2)
 	assert vnum.get_view_linear_data(a) == [1.0, 2.0, 3.0, 4.0]
 }
+
+fn test_get_view_linear_data_50() {
+	a := vnum.create_ndarray([]f64{len: 50, init: it}, 2, 25)
+	assert vnum.get_view_linear_data(a) == []f64{len: 50, init: it}
+}
