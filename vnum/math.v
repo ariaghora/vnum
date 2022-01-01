@@ -29,7 +29,7 @@ fn ufunc(func fn (args ...f64) f64, arrs ...NDArray) NDArray {
 		mut result_data := []f64{len: arrs[0].get_size()}
 		data := get_view_linear_data(arrs[0])
 		for i in 0 .. arrs[0].get_size() {
-			result_data << data[i]
+			result_data[i] = func(data[i])
 		}
 		return create_ndarray(result_data, ...arrs[0].shape)
 	} else if arrs.len > 2 {
@@ -38,15 +38,58 @@ fn ufunc(func fn (args ...f64) f64, arrs ...NDArray) NDArray {
 	panic('Cannot apply this ufunc due to different array shapes')
 }
 
+/*---------------------------------------------------------------------------
+ * Wrapper for basic (float) arithmetic functions
+ *--------------------------------------------------------------------------*/
+
+[inline]
+fn negative__(args ...f64) f64 {
+	return -args[0]
+}
+
 [inline]
 fn add__(args ...f64) f64 {
 	return args[0] + args[1]
 }
 
+[inline]
+fn subtract__(args ...f64) f64 {
+	return args[0] - args[1]
+}
+
+[inline]
+fn multiply__(args ...f64) f64 {
+	return args[0] * args[1]
+}
+
+[inline]
+fn divide__(args ...f64) f64 {
+	return args[0] / args[1]
+}
+
+/*---------------------------------------------------------------------------
+ * Unary and binary functions
+ *--------------------------------------------------------------------------*/
+
+// Unary functions
+
+pub fn negative(arr NDArray) NDArray {
+	return ufunc(negative__, arr)
+}
+
+// Binary functions
 pub fn add(arr1 NDArray, arr2 NDArray) NDArray {
 	return ufunc(add__, arr1, arr2)
 }
 
-pub fn (a NDArray) + (b NDArray) NDArray {
-	return add(a, b)
+pub fn subtract(arr1 NDArray, arr2 NDArray) NDArray {
+	return ufunc(subtract__, arr1, arr2)
+}
+
+pub fn multiply(arr1 NDArray, arr2 NDArray) NDArray {
+	return ufunc(multiply__, arr1, arr2)
+}
+
+pub fn divide(arr1 NDArray, arr2 NDArray) NDArray {
+	return ufunc(divide__, arr1, arr2)
 }

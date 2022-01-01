@@ -19,7 +19,6 @@ pub mut:
 	contiguous bool = true
 }
 
-[inline]
 pub fn (arr NDArray) get_by_offset(offset int) f64 {
 	if arr.contiguous {
 		return arr.data[offset]
@@ -95,8 +94,7 @@ pub fn (arr NDArray) slice(indices ...[]int) NDArray {
 }
 
 // Squeeze length-1 dimensions
-// TODO: use after we get proper implementation of indexing. Squuezing
-// at this moment will cause unexpected behavior.
+// TODO: try to squeeze without having to create new contiguous ndarray
 pub fn (mut arr NDArray) squeeze() NDArray {
 	mut new_shape := []int{}
 	for shp in arr.shape {
