@@ -1,8 +1,15 @@
 module vnum
 
+import math
+
 /*---------------------------------------------------------------------------
  * Wrapper for basic (float) arithmetic functions
  *--------------------------------------------------------------------------*/
+
+ [inline]
+ fn pow__(args ...f64) f64 {
+	return math.pow(args[0], args[1])
+ }
 
 [inline]
 fn negative__(args ...f64) f64 {
@@ -54,4 +61,8 @@ pub fn multiply(arr1 NDArray, arr2 NDArray) NDArray {
 
 pub fn divide(arr1 NDArray, arr2 NDArray) NDArray {
 	return ufunc(divide__, arr1, arr2)
+}
+
+pub fn pow(arr NDArray, exponent f64) NDArray {
+	return ufunc(pow__, arr, create_ndarray([exponent], 1))
 }
