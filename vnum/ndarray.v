@@ -201,6 +201,45 @@ pub fn offset_to_index(arr NDArray, offset int) []int {
 	return index
 }
 
+// Permute dimension of an NDArray
+pub fn permute_dimension(arr NDArray, dims ...int) NDArray {
+	if arr.shape.len != dims.len {
+		panic('Number of dimension does not match the permuted dims')
+	}
+
+	// Check if the permuted dims are unique
+	mut unique := []int{}
+	for i in dims {
+		if i !in unique {
+			unique << i
+		} else {
+			panic('The permuted dimensions are not unique')
+		}
+	}
+
+	shape := []int{len: dims.len, init: arr.shape[dims[it]]}
+	strides := []int{len: dims.len, init: arr.strides[dims[it]]}
+	mut indices := [][]int{}
+	for i in dims {
+		indices << arr.indices[i]
+	}
+
+	return NDArray{
+		data: arr.data
+		shape: shape
+		strides: strides
+		indices: indices
+		contiguous: false
+	}
+}
+
+// Transpose is a special case of permute_dimension where there order of dims
+// is reversed
+pub fn transpose(arr NDArray) NDArray {
+	reversed_dims := []int{len: arr.shape.len, init: it}.reverse()
+	return permute_dimension(arr, ...reversed_dims)
+}
+
 // Given a multidimensional index, calculate a proper array of strides.
 // This will be invoked whenever an ndarray is initialized or an ndarray's shape
 // is reset.
@@ -216,6 +255,8 @@ fn shape_to_strides(shape []int) []int {
 	return strides
 }
 
+// Given two ndarrays with different shape, try to broadcast them into two
+// arrays of the same shape. Raise error if broadcasting is impossible.
 pub fn broadcast_ndarrays(arr1 NDArray, arr2 NDArray) (NDArray, NDArray) {
 	new_ndims := int(math.max(arr1.shape.len, arr2.shape.len))
 
@@ -269,6 +310,7 @@ pub fn broadcast_ndarrays(arr1 NDArray, arr2 NDArray) (NDArray, NDArray) {
 	return new_arr_1, new_arr_2
 }
 
+// Function that operates on ndarrays element-wise
 fn ufunc(func fn (args ...f64) f64, arrs ...NDArray) NDArray {
 	if arrs.len == 2 {
 		// Check if all ndarrays in the argument list have the same
