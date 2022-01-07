@@ -5,7 +5,7 @@ import math
 /*---------------------------------------------------------------------------
  * Wrapper for basic (float) arithmetic functions. These functions are
  * applied to NDArrays element-wise via universal function. The corresponding
- * Universal function should be defined later. Please write the functions in 
+ * Universal function should be defined later. Please write the functions in
  * ascending order.
  *--------------------------------------------------------------------------*/
 
@@ -49,6 +49,13 @@ pub fn add(arr1 NDArray, arr2 NDArray) NDArray {
 
 pub fn divide(arr1 NDArray, arr2 NDArray) NDArray {
 	return ufunc(divide__, arr1, arr2)
+}
+
+pub fn matmul(arr1 NDArray, arr2 NDArray) NDArray {
+	data1 := get_view_linear_data(arr1)
+	data2 := get_view_linear_data(arr2)
+	data_result := matmul_arr(data1, data2, arr1.shape[0], arr2.shape[1], arr1.shape[0])
+	return create_ndarray(data_result, arr1.shape[0], arr2.shape[1])
 }
 
 pub fn multiply(arr1 NDArray, arr2 NDArray) NDArray {
