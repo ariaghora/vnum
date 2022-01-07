@@ -280,6 +280,8 @@ pub fn broadcast_ndarrays(arr1 NDArray, arr2 NDArray) (NDArray, NDArray) {
 			} else if new_shape_2[i] < new_shape_1[i] && new_shape_2[i] <= 1 {
 				new_strides_2[i] = 0
 				new_shape_2[i] = new_shape_1[i]
+			} else {
+				panic('Cannot broadcast arrays')
 			}
 		}
 	}
