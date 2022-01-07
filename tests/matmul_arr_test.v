@@ -32,6 +32,6 @@ fn test_matmul_big() {
 fn test_matmul_ndarr() {
 	a := vnum.create_ndarray([1.0, 2, 3, 4], 2, 2)
 	b := vnum.create_ndarray([1.0, 10], 2, 1)
-	println(vnum.matmul(a, b))
-	assert false
+	c := vnum.matmul(a, b)
+	assert vnum.get_view_linear_data(c) == [21.0, 43.0]
 }
