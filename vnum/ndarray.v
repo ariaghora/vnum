@@ -130,7 +130,14 @@ pub fn create_ndarray(data []f64, shape ...int) NDArray {
 	return result
 }
 
+// This function takes sub-array from ndarray's actual data.
+// It meants to be invoked in several threads.
 fn arr_fetch_worker(arr NDArray, lower int, upper int) []f64 {
+	// If array is contiguous then gettin sub-array is very simple
+	if arr.contiguous {
+		return arr.data[lower..upper]
+	}
+
 	mut result := []f64{len: upper - lower}
 	for i in lower .. upper {
 		result[i - lower] = arr.get_by_offset(i)
