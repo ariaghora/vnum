@@ -3,8 +3,8 @@ import vnum
 import vtl
 
 fn main() {
-	arr1 := []f64{len: 64 * 32 * 28 * 28, init: it}
-	shp1 := [64, 32, 28, 28]
+	arr1 := []f64{len: 64 * 32 * 200 * 200, init: it}
+	shp1 := [64, 32, 200, 200]
 	arr2 := []f64{len: 32, init: 28}
 	shp2 := [32, 1, 1]
 

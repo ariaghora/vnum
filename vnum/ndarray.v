@@ -149,14 +149,10 @@ fn arr_fetch_worker(arr NDArray, lower int, upper int) []f64 {
 	return result
 }
 
-// Returns the data in a linear manner, regardless contiguousness
-pub fn get_view_linear_data(arr NDArray) []f64 {
+// Returns a list of pairs containing lower and upper bound of a sub-array
+// in arr's linear data
+fn get_array_chunk_bounds(arr NDArray, chunk_count int) [][]int {
 	size := arr.get_size()
-
-	// We are going to split the task of fetching array data into several tasks.
-	// First, determine the number chunks, in which we want to store the fetched data.
-	// Also, determine the size of each chunk
-	mut chunk_count := 8
 	chunk_size := size / chunk_count
 
 	// Determine the lower and upper bounds for each chunk
@@ -166,6 +162,15 @@ pub fn get_view_linear_data(arr NDArray) []f64 {
 	for i in 0 .. starts.len - 1 {
 		idx_bounds << [starts[i], starts[i + 1]]
 	}
+	return idx_bounds
+}
+
+// Returns the data in a linear manner, regardless contiguousness
+pub fn get_view_linear_data(arr NDArray) []f64 {
+	// We are going to split the task of fetching array data into several tasks.
+	// First, determine the number chunks, in which we want to store the fetched data.
+	chunk_count := 4
+	idx_bounds := get_array_chunk_bounds(arr, chunk_count)
 
 	// Concurrently execute the data fetching tasks
 	mut handlers := []thread []f64{}
@@ -179,8 +184,9 @@ pub fn get_view_linear_data(arr NDArray) []f64 {
 	chunk_results := handlers.map(fn (x thread []f64) []f64 {
 		return x.wait()
 	})
+
 	for i, chunk in chunk_results {
-		result.insert(starts[i], chunk)
+		result.insert(idx_bounds[i][0], chunk)
 	}
 
 	return result
