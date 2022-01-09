@@ -58,7 +58,11 @@ pub fn (mut arr NDArray) contiguous() NDArray {
 }
 
 pub fn (arr NDArray) str() string {
-	return ndarray_to_string(arr)
+	shape_str := arr.shape.map(fn (i int) string {return i.str()})
+	mut res := "(${shape_str.join("×")} ndarray)\n"
+	res += ndarray_to_string(arr)
+
+	return res
 }
 
 pub fn (mut arr NDArray) set_val(val f64, index ...int) {
@@ -257,7 +261,7 @@ pub fn ndarray_to_string(arr NDArray) string {
 		if arr.shape.len == 1 {
 			out += arr.slice([i]).data[0].str()
 			if i < arr.shape[0] - 1 {
-				out += ", "
+				out += ', '
 			}
 		} else {
 			out += ndarray_to_string(arr.slice([i]))
@@ -386,4 +390,37 @@ fn ufunc(func fn (args ...f64) f64, arrs ...NDArray) NDArray {
 		panic('Cannot apply ufunc on $arrs.len arrays yet')
 	}
 	panic('Cannot apply this ufunc due to different array shapes')
+}
+
+//
+// TODO: raise error if func's args.len > 2. The reducer function should be a
+// binary function
+pub fn reduce_at_dim(arr NDArray, func fn (args ...f64) f64, keep_dims bool, dim int) NDArray {
+	mut indices := [][]int{len: arr.shape.len, init: []int{len: 0}}
+	indices[dim] = [0]
+	mut result_data := get_view_linear_data(arr.slice(...indices))
+	for i in 1 .. arr.shape[dim] {
+		indices[dim] = [i]
+		arr_data := get_view_linear_data(arr.slice(...indices))
+
+		for j in 0 .. arr_data.len {
+			result_data[j] = func(result_data[j], arr_data[j])
+		}
+	}
+	mut new_shape := arr.shape.clone()
+	new_shape[dim] = 1
+	mut result := create_ndarray(result_data, ...new_shape)
+
+	if !keep_dims {
+		result = result.squeeze()
+	}
+	return result
+}
+
+pub fn reduce(arr NDArray, func fn (args ...f64) f64, keep_dims bool, dims ...int) NDArray {
+	mut result := reduce_at_dim(arr, func, true, dims[0])
+	for dim in dims[1..] {
+		result = reduce_at_dim(result, func, true, dim)
+	}
+	return result
 }
