@@ -20,6 +20,16 @@ fn divide__(args ...f64) f64 {
 }
 
 [inline]
+fn maximum__(args ...f64) f64 {
+	return math.max(args[0], args[1])
+}
+
+[inline]
+fn minimum__(args ...f64) f64 {
+	return math.min(args[0], args[1])
+}
+
+[inline]
 fn multiply__(args ...f64) f64 {
 	return args[0] * args[1]
 }
@@ -58,6 +68,14 @@ pub fn matmul(arr1 NDArray, arr2 NDArray) NDArray {
 	return create_ndarray(data_result, arr1.shape[0], arr2.shape[1])
 }
 
+pub fn max(arr NDArray, keep_dims bool, dims ...int) NDArray {
+	return reduce(arr, maximum__, keep_dims, ...dims)
+}
+
+pub fn min(arr NDArray, keep_dims bool, dims ...int) NDArray {
+	return reduce(arr, minimum__, keep_dims, ...dims)
+}
+
 pub fn multiply(arr1 NDArray, arr2 NDArray) NDArray {
 	return ufunc(multiply__, arr1, arr2)
 }
@@ -72,4 +90,8 @@ pub fn pow(arr NDArray, exponent f64) NDArray {
 
 pub fn subtract(arr1 NDArray, arr2 NDArray) NDArray {
 	return ufunc(subtract__, arr1, arr2)
+}
+
+pub fn sum(arr NDArray, keep_dims bool, dims ...int) NDArray {
+	return reduce(arr, add__, keep_dims, ...dims)
 }

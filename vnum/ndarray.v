@@ -58,8 +58,10 @@ pub fn (mut arr NDArray) contiguous() NDArray {
 }
 
 pub fn (arr NDArray) str() string {
-	shape_str := arr.shape.map(fn (i int) string {return i.str()})
-	mut res := "(${shape_str.join("×")} ndarray)\n"
+	shape_str := arr.shape.map(fn (i int) string {
+		return i.str()
+	})
+	mut res := '(${shape_str.join('×')} ndarray)\n'
 	res += ndarray_to_string(arr)
 
 	return res
