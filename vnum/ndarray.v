@@ -57,6 +57,10 @@ pub fn (mut arr NDArray) contiguous() NDArray {
 	return create_ndarray(get_view_linear_data(arr), ...arr.shape)
 }
 
+pub fn (arr NDArray) str() string {
+	return ndarray_to_string(arr)
+}
+
 pub fn (mut arr NDArray) set_val(val f64, index ...int) {
 	check_arr_ndim_and_index_len_equals(arr, index)
 	arr.data[index_to_offset(index, arr.strides)] = val
@@ -238,6 +242,26 @@ pub fn permute_dimension(arr NDArray, dims ...int) NDArray {
 		indices: indices
 		contiguous: false
 	}
+}
+
+// Pretty-printing ndarray.
+pub fn ndarray_to_string(arr NDArray) string {
+	mut out := ''
+	for i in 0 .. arr.shape[0] {
+		if arr.shape.len == 1 {
+			out += arr.slice([i]).data[0].str()
+			if i < arr.shape[0] - 1 {
+				out += ", "
+			}
+		} else {
+			out += ndarray_to_string(arr.slice([i]))
+		}
+
+		if (arr.shape.len > 1) && (i < arr.shape[0] - 1) {
+			out += '\n'.repeat(arr.shape.len - 1)
+		}
+	}
+	return out
 }
 
 // Transpose is a special case of permute_dimension where there order of dims
